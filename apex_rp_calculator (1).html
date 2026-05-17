@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex RP Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #0f1318;
+    --surface2: #151b22;
+    --border: #1e2830;
+    --border-bright: #2a3a48;
+    --accent: #c8a84b;
+    --accent-dim: #8a6e2a;
+    --accent-glow: rgba(200,168,75,0.15);
+    --red: #e05252;
+    --red-dim: rgba(224,82,82,0.15);
+    --green: #4caf7d;
+    --green-dim: rgba(76,175,125,0.12);
+    --blue: #4a9fd4;
+    --blue-dim: rgba(74,159,212,0.12);
+    --teal: #3dc9b0;
+    --text: #d8dde3;
+    --text-muted: #5a6a7a;
+    --text-dim: #3a4a5a;
+    --font-display: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(200,168,75,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,168,75,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 2.5rem;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+
+  .apex-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0a0c0f;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(200,168,75,0.4);
+    line-height: 1;
+  }
+
+  .subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding-left: 50px;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--border) 60%);
+    margin: 1.2rem 0 2rem;
+    animation: expandWidth 0.8s ease 0.3s both;
+  }
+
+  /* Input section */
+  .input-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.5s ease 0.2s both;
+    flex-wrap: wrap;
+  }
+
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 10px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .input-group::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+
+  .input-group label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .input-group input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    width: 90px;
+    text-align: right;
+  }
+
+  .input-group input::-webkit-inner-spin-button,
+  .input-group input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .rp-unit {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* Summary cards */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.5s ease 0.3s both;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--border-bright); transform: translateY(-1px); }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    opacity: 0.4;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-value.accent { color: var(--accent); text-shadow: 0 0 20px rgba(200,168,75,0.3); }
+  .stat-value.green  { color: var(--green); }
+  .stat-value.blue   { color: var(--blue); }
+
+  /* Table */
+  .table-wrapper {
+    animation: fadeUp 0.5s ease 0.4s both;
+    overflow-x: auto;
+  }
+
+  .table-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .table-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .table-title-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 520px;
+  }
+
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  thead th:not(:first-child) { text-align: center; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: default;
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  tbody tr.row-champion { background: rgba(200,168,75,0.05); }
+  tbody tr.row-champion:hover { background: rgba(200,168,75,0.08); }
+
+  td {
+    padding: 11px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  td:first-child { text-align: left; }
+
+  /* Placement badges */
+  .placement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .place-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .place-1 { background: var(--accent); color: #0a0c0f; border-color: var(--accent); box-shadow: 0 0 12px rgba(200,168,75,0.4); }
+  .place-2 { background: #9ba3ab; color: #0a0c0f; border-color: #9ba3ab; }
+  .place-3 { background: #c87941; color: #0a0c0f; border-color: #c87941; }
+  .place-top { background: var(--surface2); color: var(--blue); border-color: var(--blue); }
+
+  .rp-col {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .combat-col {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .kills-col {
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+
+  .status-free  { background: var(--green-dim); color: var(--green); border-color: rgba(76,175,125,0.3); }
+  .status-easy  { background: var(--blue-dim);  color: var(--blue);  border-color: rgba(74,159,212,0.3); }
+  .status-hard  { background: var(--red-dim);   color: var(--red);   border-color: rgba(224,82,82,0.3); }
+
+  /* Progress bar */
+  .kill-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .kill-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    min-width: 50px;
+  }
+
+  .kill-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* Footer note */
+  .footnote {
+    margin-top: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    line-height: 1.7;
+    border-left: 2px solid var(--border);
+    padding-left: 12px;
+    animation: fadeUp 0.5s ease 0.5s both;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes expandWidth {
+    from { transform: scaleX(0); transform-origin: left; }
+    to   { transform: scaleX(1); transform-origin: left; }
+  }
+
+  /* Scanline flicker */
+  .header::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: rgba(200,168,75,0.3);
+    animation: scan 3s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes scan {
+    0%   { top: 0; opacity: 0.6; }
+    100% { top: 100%; opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header" style="position:relative;">
+    <div class="header-top">
+      <div class="apex-icon">RP</div>
+      <h1>RP Calculator</h1>
+    </div>
+    <div class="subtitle">// Apex Legends · Ranked Points Tracker</div>
+    <div class="divider"></div>
+  </div>
+
+  <div class="input-section">
+    <div class="input-group">
+      <label>Ziel-RP</label>
+      <input type="number" id="targetRP" value="227" min="1" max="9999" />
+      <span class="rp-unit">RP / MATCH</span>
+    </div>
+  </div>
+
+  <div class="summary-grid" id="summaryGrid"></div>
+
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span class="table-title">// Placement Analysis</span>
+      <div class="table-title-line"></div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Platzierung</th>
+          <th>Platz-RP</th>
+          <th>Combat-RP nötig</th>
+          <th>Kills / Assists</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="rpBody"></tbody>
+    </table>
+  </div>
+
+  <div class="footnote" id="footnote"></div>
+</div>
+
+<script>
+const DATA = [
+  { label:"16+",    short:"16+",  rp:0,   combat:6,  tier:"dead"  },
+  { label:"15–13",  short:"13",   rp:5,   combat:8,  tier:"low"   },
+  { label:"12–11",  short:"11",   rp:5,   combat:10, tier:"low"   },
+  { label:"10–9",   short:"9",    rp:10,  combat:12, tier:"low"   },
+  { label:"8",      short:"8",    rp:20,  combat:14, tier:"mid"   },
+  { label:"7",      short:"7",    rp:20,  combat:14, tier:"mid"   },
+  { label:"6",      short:"6",    rp:40,  combat:14, tier:"mid"   },
+  { label:"5",      short:"5",    rp:45,  combat:16, tier:"high"  },
+  { label:"4",      short:"4",    rp:55,  combat:16, tier:"high"  },
+  { label:"3",      short:"3",    rp:75,  combat:18, tier:"top"   },
+  { label:"2",      short:"2",    rp:100, combat:20, tier:"top"   },
+  { label:"1",      short:"1",    rp:125, combat:22, tier:"champ" },
+];
+
+function placeBadge(d) {
+  const n = d.short;
+  let cls = '';
+  if (n==='1') cls = 'place-1';
+  else if (n==='2') cls = 'place-2';
+  else if (n==='3') cls = 'place-3';
+  else if (['4','5','6','7','8'].includes(n)) cls = 'place-top';
+  return `<span class="placement-badge"><span class="place-num ${cls}">${n==='16+' ? '16+' : n}</span>${d.label !== d.short ? '' : ''}</span>`;
+}
+
+function render() {
+  const target = Math.max(1, parseInt(document.getElementById('targetRP').value) || 227);
+  const rows = DATA.map(d => {
+    const combatNeeded = target - d.rp;
+    const kills = combatNeeded > 0 ? Math.ceil(combatNeeded / d.combat) : 0;
+    return { ...d, combatNeeded, kills };
+  });
+
+  const free   = rows.filter(r => r.combatNeeded <= 0).length;
+  const easy   = rows.filter(r => r.kills > 0 && r.kills <= 5).length;
+  const medium = rows.filter(r => r.kills > 5 && r.kills <= 10).length;
+  const minKills = Math.min(...rows.filter(r=>r.kills>0).map(r=>r.kills));
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">// Ziel RP</div><div class="stat-value accent">${target}</div></div>
+    <div class="stat-card"><div class="stat-label">// Nur Placement</div><div class="stat-value green">${free}</div></div>
+    <div class="stat-card"><div class="stat-label">// ≤ 5 Kills</div><div class="stat-value blue">${easy}</div></div>
+    <div class="stat-card"><div class="stat-label">// Min. Kills (Champ)</div><div class="stat-value">${rows.find(r=>r.short==='1').kills}</div></div>
+  `;
+
+  const maxKills = Math.max(...rows.map(r=>r.kills));
+
+  const tbody = document.getElementById('rpBody');
+  tbody.innerHTML = rows.map(r => {
+    const isChamp = r.short === '1';
+    const barPct = r.kills > 0 ? Math.min(100, Math.round(r.kills / maxKills * 100)) : 0;
+    let barColor = '#4caf7d';
+    if (r.kills > 10) barColor = '#e05252';
+    else if (r.kills > 5) barColor = '#c8a84b';
+
+    let statusBadge;
+    if (r.combatNeeded <= 0) {
+      statusBadge = `<span class="status-badge status-free">Kein Kill nötig</span>`;
+    } else if (r.kills <= 5) {
+      statusBadge = `<span class="status-badge status-easy">Machbar</span>`;
+    } else {
+      statusBadge = `<span class="status-badge status-hard">${r.kills} Kills</span>`;
+    }
+
+    const killsDisplay = r.kills > 0
+      ? `<div class="kill-bar-wrap">
+           <span class="kills-col" style="min-width:22px; text-align:right; color:${r.kills<=5?'var(--green)':r.kills<=10?'var(--accent)':'var(--red)'}">${r.kills}</span>
+           <div class="kill-bar"><div class="kill-bar-fill" style="width:${barPct}%; background:${barColor};"></div></div>
+         </div>`
+      : `<span style="color:var(--text-dim); font-family:var(--font-mono)">—</span>`;
+
+    return `
+      <tr class="${isChamp ? 'row-champion' : ''}">
+        <td>${placeBadge(r)}</td>
+        <td class="rp-col" style="color:${r.rp>=75?'var(--accent)':r.rp>=20?'var(--text)':'var(--text-muted)'}">${r.rp}</td>
+        <td class="combat-col">${r.combatNeeded > 0 ? r.combatNeeded : '<span style="color:var(--green)">✓</span>'}</td>
+        <td>${killsDisplay}</td>
+        <td>${statusBadge}</td>
+      </tr>`;
+  }).join('');
+
+  document.getElementById('footnote').innerHTML =
+    `// Combat-RP pro Kill/Assist variiert je nach Platzierung: Platz 16–6 = 6–14 RP, Platz 5–4 = 16 RP, Platz 3 = 18 RP, Platz 2 = 20 RP, Platz 1 (Champion) = 22 RP<br>
+     // Kills und Assists zählen gleich. Berechnung basiert auf dem maximal möglichen Combat-RP pro Kill für den jeweiligen Slot.`;
+}
+
+document.getElementById('targetRP').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
